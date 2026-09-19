@@ -1,0 +1,3 @@
+# formats appairés pour tous les notebooks du dépôt
+formats = "ipynb,py:percent"
+
