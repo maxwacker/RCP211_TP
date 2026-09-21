@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.17.3
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -132,6 +132,24 @@ R = -1*np.ones([N**2,1])
 R[0] = 0
 R[N**2-1] = 0
 
+# %%
+
+# %%
+R.shape # Why R is an array ? 
+
+# %%
+np1 =  np.ones(5)
+print(np1.shape)
+np1[0] = 0
+#print(np1[0][0])
+
+# %%
+np2 =np.ones([5,1])
+print(np2.shape)
+np2[0] = 0
+print(np2[0])
+print(np2[0][0])
+
 # %% [markdown] id="EAyE4nOddaDp"
 # Création de la matrice de transition pour une politique de mouvements uniforme avec une probailité $\pi$ = 0.25 et une transition déterministe $p(s' | s, a) = 1$ pour $s'$ situé en $E,N,O$ ou $S$ par rapport à $s$.
 #
@@ -151,31 +169,35 @@ for i in range(N):
     s_N = (i-1)*N+j
     s_O = i*N+j-1
     s_S = (i+1)*N+j
-
-    if j < N-1:
-        
-      P[s,s_E] = # à compléter avec la bonne probabilité
+    # On est en (i,j)
+    if j < N-1: # Pas de mur à EST
+      P[s,s_E] = pi
+    else : # Mur à l'EST, probabilé d'aller à l'EST devient proba de se cogner et rester sur place
+      P[s,s] = pi
+    if i > 0: # Pas de mur au NORD
+      P[s,s_N] = pi
     else :
-      P[s,s] = # à compléter avec la bonne probabilité
-    if i > 0:
-      P[s,s_N] = # à compléter avec la bonne probabilité
-    else :
-      P[s,s] = # à compléter avec la bonne probabilité
+      P[s,s] = pi
     if j > 0:
-      P[s,s_O] = # à compléter avec la bonne probabilité
+      P[s,s_O] = pi
     else :
-      P[s,s] = # à compléter avec la bonne probabilité
+      P[s,s] = pi
     if i < N-1:
-      P[s,s_S] = # à compléter avec la bonne probabilité
+      P[s,s_S] = pi
     else :
-      P[s,s] = # à compléter avec la bonne probabilité
-    if (i,j)==(0,N-1) or (i,j)==(N-1,0):
-      P[s,s] = # à compléter avec la bonne probabilité
+      P[s,s] = pi
+    if (i,j)==(0,N-1) or (i,j)==(N-1,0): # Si Top-Left ou Bottom-Right, la probabilité de se cogner est 2*pi (2 murs)
+      P[s,s] = 2*pi
 
 P[0,:] = 0
 P[N**2-1,:]=0
 
-#plt.imshow(P)
+plt.imshow(P)
+
+# %%
+# Verif Perso Somme Elt de lignes = 1 (proba)
+np.sum(P[1])
+
 
 # %% [markdown] id="WsTrPyzsoXOK"
 # ## Partie 2 : Estimation de la politique et de la valeur des états associée
@@ -210,7 +232,7 @@ n_iter = 500
 fig = plt.figure()
 
 V = get_V(n_iter,P,R,gamma)
-  
+
 
 # %% [markdown] id="vvgPfGuU0MiT"
 # Sans surprise, plus on est proche des points à atteindre, plus la valeur des états est élevée.
