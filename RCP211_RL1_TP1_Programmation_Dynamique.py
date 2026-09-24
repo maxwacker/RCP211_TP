@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.17.3
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -146,7 +146,7 @@ N_ACTIONS = len(ACTION_NAMES)
 def build_gridworld(shape, terminal_coords, walls=None):
     # Construit P(s'|s,a) et r(s,a,s') pour une grille déterministe.
     n_rows, n_cols = shape
-    walls = set() if walls is None else set(walls)
+    walls = set() if walls is None else set(walls) #Perso : init walls as empty set if not set as func parma
     terminal_coords = set(terminal_coords)
 
     coords = [
@@ -228,6 +228,10 @@ print("États terminaux :", grid["terminal_states"])
 #
 # Sans exécuter de nouveau code, quel est l'indice de la case $(3,7)$ ? Que doit faire l'action `haut` dans cette case ? Et l'action `haut` dans la case $(0,7)$ ?
 #
+
+# %% [markdown]
+# Action 'haut' = 'diminuer indice de ligne' : (3,7) -haut-> (2,7) 
+# (0,7) -haut-> (0,7)  (Il y a uyn mur au dessus de 0,7)
 
 # %%
 def state_of(env, coord):
@@ -339,6 +343,11 @@ plt.show()
 #
 # Cette expérience ne modifie aucune fonction : seules les données passées à `build_gridworld` changent.
 
+# %%
+
+# %%
+grid_test 
+
 # %% [markdown]
 # ## Visualiser les quatre matrices de transition
 #
@@ -396,19 +405,48 @@ plt.show()
 
 
 # %% [markdown]
+#
+
+# %% [markdown]
 # ### Questions de compréhension
 #
 # Avant de passer à l'évaluation d'une politique, observez attentivement les quatre matrices et essayez de répondre aux questions suivantes.
 #
-# 1. Pourquoi chaque matrice $P^a$ est-elle de taille $100\times100$, et non $10\times10$ ?
+# 1. Pourquoi chaque matrice $P^a$ est-elle de taille $100\times100$, et non $10\times10$ 
+#
+# ->
+# La matrices de transition à autant de lignes et colonne que d'états
+# Un état est déterminé par sa ligne et sa colonne dans le grid: 10 lignes x 10 colonnes : 100 états
+#
 # 2. Que représentent respectivement ses lignes et ses colonnes ?
+#
+# -> 
+# Chaque ligne représente la distrubition de probabilité du ième état vers jième. le somme de la ligen est donc 1.
+# Pour des transition déterministe, une seule colonne vaut 1 (pour une action choisie, une seule destination possbile).
+#
 # 3. Pourquoi chaque ligne contient-elle exactement un seul coefficient non nul ?
-# 4. Pourquoi ce coefficient vaut-il $1$ ?
-# 5. Pourquoi voit-on certains coefficients sur la diagonale principale ?
-# 6. Pourquoi les coefficients non diagonaux forment-ils des bandes décalées de $1$ pour les déplacements horizontaux et de $10$ pour les déplacements verticaux ?
-# 7. Une colonne doit-elle, elle aussi, contenir exactement un seul $1$ ?
+#
+# -> Pour une action choisie une seule destination cnadidate possible
+#
+# 5. Pourquoi ce coefficient vaut-il $1$ ?
+#
+# -> Déterminisme : la somme de ligne doit être 1 (ligne distribution de probabilité)
+#
+#
+# 7. Pourquoi voit-on certains coefficients sur la diagonale principale ?
+#
+# -> transition d'un état sur lui même : Tout les états en bordure.
+# Ainsi les 10 premiers lignes de Phaut sont à 1 sur la diagonale car les 10 première transitions vers le haut cognent le mur  
+#  
+# 9. Pourquoi les coefficients non diagonaux forment-ils des bandes décalées de $1$ pour les déplacements horizontaux et de $10$ pour les déplacements verticaux ?
+#
+# -> (i,j) -
+#     
+# 11. Une colonne doit-elle, elle aussi, contenir exactement un seul $1$ ?
 #
 # Ces questions portent uniquement sur la structure de $P$. Le tableau `R` possède la même forme `(100, 4, 100)`, mais il contient les récompenses $r(s,a,s')$, et non des probabilités.
+
+# %%
 
 # %% [markdown]
 # # Partie 2 — Évaluation d'une politique
