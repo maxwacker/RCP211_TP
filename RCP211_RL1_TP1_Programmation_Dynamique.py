@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.18.1
+#       jupytext_version: 1.17.3
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -229,10 +229,6 @@ print("États terminaux :", grid["terminal_states"])
 # Sans exécuter de nouveau code, quel est l'indice de la case $(3,7)$ ? Que doit faire l'action `haut` dans cette case ? Et l'action `haut` dans la case $(0,7)$ ?
 #
 
-# %% [markdown]
-# Action 'haut' = 'diminuer indice de ligne' : (3,7) -haut-> (2,7) 
-# (0,7) -haut-> (0,7)  (Il y a uyn mur au dessus de 0,7)
-
 # %%
 def state_of(env, coord):
     return env["coord_to_state"][coord]
@@ -254,6 +250,13 @@ print("Depuis (3, 7), action haut :", transition_summary(grid, (3, 7), "haut"))
 print("Depuis (0, 7), action haut :", transition_summary(grid, (0, 7), "haut"))
 print("Depuis (0, 1), action gauche :", transition_summary(grid, (0, 1), "gauche"))
 
+
+# %% [markdown]
+# -> Action 'haut' = 'diminuer indice de ligne' : (3,7) -haut-> (2,7) 
+#
+# (0,7) -haut-> (0,7)  (Il y a un mur au dessus de 0,7)
+
+# %%
 
 # %% [markdown]
 # ## Visualisation des valeurs et de la politique
@@ -344,9 +347,39 @@ plt.show()
 # Cette expérience ne modifie aucune fonction : seules les données passées à `build_gridworld` changent.
 
 # %%
+grid_test = build_gridworld(
+    shape=(6, 8),
+    terminal_coords={(5, 7)}
+)
 
 # %%
-grid_test 
+P_test, R_test = grid_test["P"], grid_test["R"]
+print("MDP valide :", check_mdp(grid_test))
+print("Nombre d'états :", len(grid_test["coords"]))
+print("Forme de P :", P_test.shape)
+print("Forme de R :", R_test.shape)
+print("États terminaux :", grid_test["terminal_states"])
+
+
+print("Depuis (3, 7), action droite :", transition_summary(grid_test, (3, 7), "droite"))
+print("Depuis (0, 7), action haut :", transition_summary(grid_test, (0, 7), "haut"))
+print("Depuis (5, 7), action droite :", transition_summary(grid_test, (5, 7), "droite"))
+
+# %%
+
+# %%
+uniform_policy_test = np.full((len(grid_test["coords"]), N_ACTIONS), 1 / N_ACTIONS)
+draw_policy(uniform_policy_test, grid_test, "Politique uniforme")
+plt.show()
+
+# %%
+uniform_policy_test.shape # (48, 4) ~ (6x8) states with 4 actions probability for each
+uniform_policy_test[0] # uniform probability for each actions, given S = s0
+
+# %%
+uniform_policy_test = np.full((len(grid_test["coords"]), N_ACTIONS), 1 / N_ACTIONS)
+draw_policy(uniform_policy_test, grid_test, "Politique uniforme")
+plt.show()
 
 # %% [markdown]
 # ## Visualiser les quatre matrices de transition
@@ -414,39 +447,51 @@ plt.show()
 #
 # 1. Pourquoi chaque matrice $P^a$ est-elle de taille $100\times100$, et non $10\times10$ 
 #
-# ->
+# R1:
+#
 # La matrices de transition à autant de lignes et colonne que d'états
 # Un état est déterminé par sa ligne et sa colonne dans le grid: 10 lignes x 10 colonnes : 100 états
 #
 # 2. Que représentent respectivement ses lignes et ses colonnes ?
 #
-# -> 
+# R2:
+#
 # Chaque ligne représente la distrubition de probabilité du ième état vers jième. le somme de la ligen est donc 1.
 # Pour des transition déterministe, une seule colonne vaut 1 (pour une action choisie, une seule destination possbile).
 #
 # 3. Pourquoi chaque ligne contient-elle exactement un seul coefficient non nul ?
 #
-# -> Pour une action choisie une seule destination cnadidate possible
+# R3: 
+#
+# Pour une action choisie une seule destination cnadidate possible
 #
 # 5. Pourquoi ce coefficient vaut-il $1$ ?
 #
-# -> Déterminisme : la somme de ligne doit être 1 (ligne distribution de probabilité)
+# R4: 
+#
+# Déterminisme : la somme de ligne doit être 1 (ligne distribution de probabilité)
 #
 #
 # 7. Pourquoi voit-on certains coefficients sur la diagonale principale ?
 #
-# -> transition d'un état sur lui même : Tout les états en bordure.
-# Ainsi les 10 premiers lignes de Phaut sont à 1 sur la diagonale car les 10 première transitions vers le haut cognent le mur  
+#  Coeff sur diagonale principale désgine une transition d'un état sur lui même : Tout les états en bordure avec action vers la bordure.
+# Ainsi les 10 premiers lignes de Phaut sont à 1 sur la diagonale car les 10 premières transitions vers le haut cognent le mur  
 #  
 # 9. Pourquoi les coefficients non diagonaux forment-ils des bandes décalées de $1$ pour les déplacements horizontaux et de $10$ pour les déplacements verticaux ?
 #
-# -> (i,j) -
+# R9 :
+# Déplacements horizontaux : variation d'incide d'état de +/- 1
+# Déplacement verticaux : variation d'incide d'état de +/- 10 (Saut de ligne de longueur 10)
+#
 #     
 # 11. Une colonne doit-elle, elle aussi, contenir exactement un seul $1$ ?
 #
+# R11 :
+#
+# La colonne k inquique depuis quels etats l'état k est accessible (pour une direction de mouvement donnée)
+# Les états en bordures de grid sonr accessible depuis leur voisin et depuis eux même. leur colonnes comporte donc 2 valeurs à 1
+#
 # Ces questions portent uniquement sur la structure de $P$. Le tableau `R` possède la même forme `(100, 4, 100)`, mais il contient les récompenses $r(s,a,s')$, et non des probabilités.
-
-# %%
 
 # %% [markdown]
 # # Partie 2 — Évaluation d'une politique
@@ -495,6 +540,10 @@ plt.show()
 #
 # Les mises à jour sont synchrones : toutes les composantes de `V_new` sont calculées à partir du même ancien vecteur `V`. L'itération s'arrête lorsque l'écart maximal entre deux vecteurs successifs devient inférieur à `theta`. La fonction renvoie alors la valeur approchée de la politique, le nombre de balayages effectués et l'historique des écarts `deltas`.
 #
+#
+# Nous utilisons $\gamma=0{,}9$. Puisque $\gamma<1$ et que les récompenses sont bornées, l'évaluation itérative converge même pour une politique qui n'atteint pas nécessairement un état terminal.
+
+# %% [markdown]
 # ### Prédiction
 #
 # Avant d'exécuter l'évaluation, répondez mentalement :
@@ -502,7 +551,10 @@ plt.show()
 # 2. quelles symétries attendez-vous dans la carte des valeurs ?
 # 3. pourquoi les deux terminaux doivent-ils garder la valeur $0$ ?
 #
-# Nous utilisons $\gamma=0{,}9$. Puisque $\gamma<1$ et que les récompenses sont bornées, l'évaluation itérative converge même pour une politique qui n'atteint pas nécessairement un état terminal.
+# 1 - Signe négatif, comme accumulation de valeurs négatives ou nulles
+# 2 - Puisque nous avons un symétrie dans la dynamique et ainsi que dans la polique nous attendont une symétrie dans la carte des valeurs
+# 3 - Car les états terminaux sont absordant : une fois atteints on n'en sort plus. La récompense associée à ces transitions répétées sur un état terminal s'accumule dans le rendu futur mais ne doit pas le modifier (donc 0).
+#
 
 # %%
 def action_values(V, P, R, gamma):
