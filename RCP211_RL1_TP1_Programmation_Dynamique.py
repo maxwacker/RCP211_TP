@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.18.1
+#       jupytext_version: 1.17.3
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -786,10 +786,18 @@ plt.show()
 # Inspectons localement le calcul de la politique gloutonne dans la case `(4,4)`.
 
 # %%
+# Zip ?
 coord = (4, 4)
 s = state_of(grid, coord)
+print("ACTION_NAMES : ", ACTION_NAMES)
+print("Q_uniform[s] : ", Q_uniform[s])
+print("zip(ACTION_NAMES, Q_uniform[s]) : \n", list(zip(ACTION_NAMES, Q_uniform[s])))
+
+# %%
+coord = (4, 4)
+s = state_of(grid, coord) # obtient l'indice unidimentiel de s dand le grid
 print("Case", coord, "— indice", s)
-for name, value in zip(ACTION_NAMES, Q_uniform[s]):
+for name, value in zip(ACTION_NAMES, Q_uniform[s]): 
     print(f"  q_pi({name:7s}) = {value: .4f}")
 
 
