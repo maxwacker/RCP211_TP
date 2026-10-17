@@ -110,4 +110,83 @@ P[:, 0, :] #0: Action Gauche
 # %%
 P[:, 1, :] #1: Action Haut
 
+
 # %%
+# Partie 4 
+def deterministic_policy(actions, n_actions=N_ACTIONS):
+    # Convertit un tableau d'actions en politique au format (état, action).
+    policy = np.zeros((len(actions), n_actions))
+    policy[np.arange(len(actions)), actions] = 1.0
+    return policy
+
+
+# %%
+actions = np.array([0,2,0,3])
+n_actions = N_ACTIONS
+policy = np.zeros((len(actions), n_actions))
+policy[np.arange(len(actions)), actions] = 1.0
+policy # This is the transition Matrix from actions array (s,a) 
+
+# %%
+np.arange(len(actions))
+
+# %% [markdown]
+# # Pourquoi le résultat de 'Value iteration' stochastique (plusieurs actions posible dans certains états) alors que 'Policy Iteration' donne un résultat déterrministe.
+#
+# En fait la description de 'Partie 4' choisit explicitment d'établir une politique déterministe.
+# C'est un choix d'implémentation.
+# L'algo général décrit dans le CM RL1_3.3.5 n'impose pas une telle contrainte : Dans le cas général, on peut utiliser l'algo 'Policy Iteration' pour trouver une politique optimale non déterministe.
+
+# %%
+# une fonction Etat-Action Q représenter par un tenseur Q[s,a] (Chaque ligne représentat la valeur de chaque depuis s, en colonne)
+Q = np.array([[0.0, 0.0, 1.0], [0.5, 0.5, 0.0], [0.3, 0.2, 0.5]])
+Q              
+
+# %%
+V_new = Q.max(axis=1)
+V_new # -> array([1. , 0.5, 0.5]) - La valeur max est donc bien unique (même en cas de ex-equo linge 2). Le non déterminisme ne vient pas de là
+
+# %%
+# Mais lorsqu'on cherche les actions qui permettent d'attendre ce maximum
+best_vi = np.isclose(Q, Q.max(axis=1, keepdims=True), atol=1e-8, rtol=0)
+best_vi # Il est bien possible d'obtenir plusieurs actions maximisantes (ex-eaquo) sur certaines ligne (ici : ligne 2)
+
+# %% [markdown]
+# # Partie 6 - Labyrinthe
+# ## Etude de définition des murs
+#
+
+# %%
+maze_array = np.array([
+    [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0],
+    [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+], dtype=int)
+
+# %%
+walls = set(map(tuple, np.argwhere(maze_array == 1)))
+
+# %%
+# Etude de argwhere
+# Def np.argwhere : Find the indices of array elements that are non-zero, grouped by element.
+# Ex :
+import numpy as np
+x = np.arange(6).reshape(2,3) 
+# 2 lines x 3 cols :
+# array([[0, 1, 2],
+#      [3, 4, 5]])
+np.argwhere(x>1) # Indices (ndim de x) des cellules t.q cell-value > 1
+
+# %%
+list(map(tuple, np.argwhere(x>1))) # Applique le consrtuceur tuple sur chaque [a, b] 
+
+# %%
+# Etude de build_gridworld

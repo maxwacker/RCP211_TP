@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.17.3
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -146,7 +146,7 @@ N_ACTIONS = len(ACTION_NAMES)
 def build_gridworld(shape, terminal_coords, walls=None):
     # Construit P(s'|s,a) et r(s,a,s') pour une grille déterministe.
     n_rows, n_cols = shape
-    walls = set() if walls is None else set(walls) #Perso : init walls as empty set if not set as func parma
+    walls = set() if walls is None else set(walls) #Perso : init walls as empty set if not set as func param
     terminal_coords = set(terminal_coords)
 
     coords = [
@@ -436,10 +436,6 @@ fig.suptitle(
 plt.tight_layout()
 plt.show()
 
-
-# %% [markdown]
-#
-
 # %% [markdown]
 # ### Questions de compréhension
 #
@@ -543,6 +539,24 @@ plt.show()
 #
 # Nous utilisons $\gamma=0{,}9$. Puisque $\gamma<1$ et que les récompenses sont bornées, l'évaluation itérative converge même pour une politique qui n'atteint pas nécessairement un état terminal.
 
+# %%
+# APPROFONDISSEMENT PERSO : Dimension des tenseurs V et Q 
+V_ = np.zeros(P.shape[0])
+gamma_ = 0.9
+V_broadcasted = V_[None, None, :]
+print(f"V_broadcasted shape : {V_broadcasted.shape} ")
+action_value = np.sum(P * (R + gamma_ * V_broadcasted), axis=2)
+print(f"action_value shape :  {action_value.shape} ")  # (state, action) -> r
+
+Q_ = action_value
+V_new_ = np.sum(uniform_policy * Q_, axis=1)
+print(f"V_new_ :  {V_new_.shape} ") # state -> r
+
+terminal_states_ = grid["terminal_states"]
+
+V_new_[terminal_states_] = 0.0 # C'est le tableau des récompense espéré (pour chaque état)
+
+
 # %% [markdown]
 # ### Prédiction
 #
@@ -551,8 +565,12 @@ plt.show()
 # 2. quelles symétries attendez-vous dans la carte des valeurs ?
 # 3. pourquoi les deux terminaux doivent-ils garder la valeur $0$ ?
 #
+# ->
+#
 # 1 - Signe négatif, comme accumulation de valeurs négatives ou nulles
-# 2 - Puisque nous avons un symétrie dans la dynamique et ainsi que dans la polique nous attendont une symétrie dans la carte des valeurs
+#
+# 2 - Puisque nous avons un symétrie dans la dynamique et ainsi que dans la polique nous attendont une symétrie dans la carte des valeurs, selon le même axe diagonal
+#
 # 3 - Car les états terminaux sont absordant : une fois atteints on n'en sort plus. La récompense associée à ces transitions répétées sur un état terminal s'accumule dans le rendu futur mais ne doit pas le modifier (donc 0).
 #
 
@@ -565,12 +583,13 @@ def action_values(V, P, R, gamma):
 def policy_evaluation(policy, P, R, gamma, terminal_states,
                       theta=1e-8, max_sweeps=100_000):
     # Évaluation itérative synchrone d'une politique stochastique.
+    # synchrone car la politique entière (pour chaque état) est màj à chaque itération 
     V = np.zeros(P.shape[0])
     deltas = []
 
     for sweep in range(1, max_sweeps + 1):
-        Q = action_values(V, P, R, gamma)
-        V_new = np.sum(policy * Q, axis=1)
+        Q = action_values(V, P, R, gamma) # shape (nombre_etats, nombre_actions): Q[s, a] = valeur d'action a dans état s
+        V_new = np.sum(policy * Q, axis=1) # V_new(s) = Sum_a[ Pi(a|s) * qvpi(s, a) ] (Voir 'Explication du code, ci-dessus)
         V_new[terminal_states] = 0.0
 
         delta = np.max(np.abs(V_new - V))
@@ -605,11 +624,25 @@ plt.show()
 # ### Question
 #
 # Les valeurs observées respectent-elles vos prédictions ? Pourquoi les cases proches d'un terminal ont-elles une valeur plus élevée, c'est-à-dire moins négative ?
+#
+#
+# -> 
+# Les valeurs de cases sont l'addition de récompense direct plus récompense espéré (somme pondérée et ammoindrie par gamma)) jusqu'à un état terminal. Les récompense sont négatives ou nulle
+# Les valeurs des cases directement voisines des cases terminales ne reçoivent que la récompense directe, donc faible en valeur absolue.
+# Les voisines des voisines directes de cases terminal cumulent la récompense précédante amoindrie de gamma + la récompense directe de passe, c-à-d un score moins bon (plus longue somme de valeurs négatives).
+#
+# Récurcivement : Plus on s'éloigne d'une case terminale, plus la valeur est petites comme somme plus mlongue de valeurs négatives.
 
 # %% [markdown]
 # ### Expérience facultative — rôle de $\gamma$
 #
 # Prédisez d'abord l'effet d'un passage de $\gamma=0{,}9$ à $\gamma=0{,}5$ sur les états éloignés des terminaux. Exécutez ensuite la cellule suivante et comparez les deux cartes.
+#
+# ->
+#
+# Convergence plus rapide des valeurs vers 0 en s'approchant des cases terminales.
+#
+# --> En fait non : Convergence plus rapide de la fonction d'évaluation. Donc valeurs atteintes plus petites en moins d'étapes
 
 # %%
 V_uniform_05, n_sweeps_05, _ = policy_evaluation(
@@ -633,6 +666,7 @@ fig.colorbar(shown_09, ax=axes, shrink=0.85, label=r"Valeur $v_\pi(s)$")
 plt.show()
 
 print("Balayages pour gamma=0.5 :", n_sweeps_05)
+
 
 # %% [markdown]
 # ### Question d'approfondissement — résolution exacte
@@ -677,7 +711,7 @@ print("Balayages pour gamma=0.5 :", n_sweeps_05)
 #
 # Le vecteur `r_pi` contient ainsi la récompense immédiate espérée dans chaque état lorsque l'on suit la politique uniforme.
 
-# %%
+# %% jupyter={"source_hidden": true}
 P_pi = np.einsum("sa,san->sn", uniform_policy, P)
 r_pi = np.einsum("sa,san,san->s", uniform_policy, P, R)
 # `np.eye` construit la matrice identité et 
@@ -725,6 +759,11 @@ print("Écart maximal entre les deux méthodes :",
 #
 # Pour chacune des quatre cases centrales $(4,4)$, $(4,5)$, $(5,4)$ et $(5,5)$, quelles directions pensez-vous que la politique améliorée privilégiera ?
 #
+# <font color="blue">
+# -> La direction privilégiée sera celle qui mène le plus rapidement vers l'état terminal le plus proche. Car, puisque les récompenses sont uniformes, le chemin géométriquement le plus cours est le meilleur (qui reçoit le moins de récompense négative).
+#
+# --> Puisqu'il y a plusieurs chemins plus court ex-equo, comme nous sommes en présence de politique stochastique, les 2 chemins les plus cours sont représentés.
+# </font>
 
 # %%
 def greedy_stochastic_policy(Q, terminal_states, atol=1e-10):
@@ -862,6 +901,8 @@ def policy_iteration(P, R, gamma, terminal_states, initial_actions,
 #
 # Cette politique n'explore pas la grille et se bloque sur le bord droit depuis la plupart des états. Pourquoi *Policy Iteration* peut-elle néanmoins découvrir de meilleures actions ?
 #
+#
+# -> La dernière ligne de cases reçoit des valeurs optimales dans ces conditions initiales. A l'itération suivantesles cases voisines de la dernières (celles de l'avant dernière ligne donc) "percoivent" cette option d'action comme meilleure. L'information se diffuse itération après itération ...
 
 # %%
 RIGHT = ACTION_NAMES.index("droite")
@@ -883,11 +924,15 @@ draw_policy(policy_pi, grid, "Politique finale", axes[1])
 plt.tight_layout()
 plt.show()
 
-
 # %% [markdown]
 # ### Question
 #
 # Observez le journal de l'algorithme. Pourquoi certaines évaluations demandent-elles beaucoup plus de balayages que d'autres ? Pourquoi la dernière étape modifie-t-elle exactement zéro état ?
+#
+#
+# -> 
+# La variation du nombres de balayages à chaqe étape d'évaluation est très stable (la question n'est pas très pertinente).
+# Les balayages d'évaluation (Calcul de V) : sont dautant plus grand que Vk+1 est éloigné de Vk. Cette situation a lieu lorsque.
 #
 # ### Expérience facultative — autre politique initiale
 #
@@ -899,6 +944,33 @@ plt.show()
 # ```
 #
 # Comparez le nombre d'étapes d'amélioration et la politique finale. Deux politiques finales différentes peuvent-elles être toutes les deux optimales ?
+
+# %%
+# Réponse
+rng = np.random.default_rng(0)
+random_actions = rng.integers(0, N_ACTIONS, size=P.shape[0])
+
+V_pi, actions_pi, log_pi = policy_iteration(
+    P, R, gamma, grid["terminal_states"], random_actions
+)
+policy_pi = deterministic_policy(actions_pi)
+
+print("Nombre d'étapes d'amélioration :", len(log_pi))
+print("(balayages d'évaluation, états modifiés) à chaque étape :")
+for k, item in enumerate(log_pi, start=1):
+    print(f"  étape {k}: {item}")
+
+fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+draw_values(V_pi, grid, "Valeur finale de Policy Iteration", axes[0])
+draw_policy(policy_pi, grid, "Politique finale", axes[1])
+plt.tight_layout()
+plt.show()
+
+
+# %% [markdown]
+# Comparez le nombre d'étapes d'amélioration et la politique finale. Deux politiques finales différentes peuvent-elles être toutes les deux optimales ?
+# -> Le nombre d'étapes est similaire un dizaine. La politique obtenue n'est la même mais similaire (chaque action dirige bien vers l'état final le plus proche). Il y a bien plusieurs optimales possibles.
+#
 
 # %% [markdown]
 # # Partie 5 — Value Iteration
@@ -923,13 +995,13 @@ plt.show()
 # %%
 def value_iteration(P, R, gamma, terminal_states,
                     theta=1e-8, max_sweeps=100_000, keep_history=False):
-    V = np.zeros(P.shape[0])
+    V = np.zeros(P.shape[0]) # Valeur d'état : V[s] (V.shape = (100,)
     history = [V.copy()] if keep_history else None
     deltas = []
 
     for sweep in range(1, max_sweeps + 1):
         Q = action_values(V, P, R, gamma)
-        V_new = Q.max(axis=1)
+        V_new = Q.max(axis=1) # Max ( Q[s,a], axis=1) : V_new[s] <- meilleure valeur de Q[s,:] 
         V_new[terminal_states] = 0.0
 
         delta = np.max(np.abs(V_new - V))
@@ -992,10 +1064,19 @@ print("Écart maximal entre les valeurs finales :",
 print("Chaque action de la politique PI est optimale selon VI :",
       pi_actions_are_optimal)
 
+
 # %% [markdown]
 # ### Question
 #
 # Les valeurs finales de *Policy Iteration* et *Value Iteration* coïncident numériquement. Les figures de politiques ne sont pourtant pas identiques partout : *Policy Iteration* conserve une seule action, tandis que notre affichage de *Value Iteration* montre toutes les actions maximisantes. Expliquez pourquoi il n'y a pas de contradiction.
+#
+# <font color='blue'>
+# ->
+#
+# Policy Iteration calcule explicitment une politique gloutonne déterministe
+# Value Iteration produit une politique sochastique qui est néanmoins optimale (d'où les mêmes valeurs d'état)
+#
+# </font>
 #
 # ### Expérience facultative — seuil d'arrêt
 #
