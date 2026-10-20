@@ -999,6 +999,17 @@ plt.show()
 #
 # On initialise $v_0=0$. Après le premier balayage, quelles cases peuvent déjà « savoir » qu'un terminal est proche ? À quelle vitesse cette information peut-elle traverser la grille ?
 #
+# <font color="blue">
+# Règle de récompense (issue de la fonction gridworld) :
+#     
+# reward = 0.0 if s_next in terminal_set else -1.0
+#     
+# Donc les cases directement voisines d'un état terminal revoivent une valeur 0 au premier balayage (la plus basse parmi les possibles.
+# Au balayge suivant, les cases directement voisines des cases de valeur 0, selon le même principe de valeur la plus basses parmi les possibles.
+#
+# Donc chaque balayage transmet l'information de valeurs en s'éloignant de une case à chaque itération. 
+#     
+# </font>
 
 # %%
 def value_iteration(P, R, gamma, terminal_states,
@@ -1081,8 +1092,9 @@ print("Chaque action de la politique PI est optimale selon VI :",
 # <font color='blue'>
 # ->
 #
-# Policy Iteration calcule explicitment une politique gloutonne déterministe
-# Value Iteration produit une politique sochastique qui est néanmoins optimale (d'où les mêmes valeurs d'état)
+# Notre implémentation Policy Iteration calcule explicitment une politique gloutonne déterministe.
+# Value Iteration produit une politique sochastique qui est néanmoins optimale (d'où les mêmes valeurs d'état).
+# Dans les cases à plusieurs choix, chaque choix produit la même valeur (car sinon l'un d'eux ne serait pas optimal).
 #
 # </font>
 #
@@ -1123,7 +1135,7 @@ maze_array = np.array([
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
 ], dtype=int)
 
-walls = set(map(tuple, np.argwhere(maze_array == 1)))
+walls = set(map(tuple, np.argwhere(maze_array == 1))) # On décrit les murs par ensemble des tuples (i,j) de leurs position
 maze = build_gridworld(
     shape=maze_array.shape,
     terminal_coords={(10, 10)},
@@ -1143,6 +1155,10 @@ plt.show()
 #
 # Regardez le labyrinthe avant de lancer l'algorithme. Par quels passages la valeur du terminal devra-t-elle remonter ? Les valeurs de deux cases géométriquement proches seront-elles nécessairement proches ?
 #
+# <font color="blue">
+# -> En résolution 'manuelle' par lignes droites : (0,0)-(0,1)-(3,1)-(3,5)-(9,5)-(9,9)-(10,9)-(10,10)
+# -> La différence de valeur entre 2 cases proche peut-être élévé si le chemin est long (contournement de murs)
+# </font>
 
 # %%
 # Même algorithme que dans la partie 5 : seuls P, R et les terminaux changent.
@@ -1215,6 +1231,13 @@ plt.show()
 # Établissez deux listes courtes :
 #
 # - ce qui a changé entre le GridWorld vide et le labyrinthe ;
+#
+#
+# <font color="blue">
+# - La proximité géométrique n'implique pas forcement des valeurs d'état proches
+# - 
+# </font>
+#   
 # - ce qui est resté strictement identique.
 #
 # La distinction attendue est celle entre **le modèle de l'environnement** $(\mathcal S,\mathcal A,P,r)$ et **l'algorithme de planification** qui exploite ce modèle.
