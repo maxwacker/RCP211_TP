@@ -368,6 +368,31 @@ def env_step(env, s, a, rng):
 
 
 # %%
+# Checking understanding on grid 4x4 
+
+grid_4x4 = build_gridworld(
+    shape=(4, 4),
+    terminal_coords={(0, 0), (3, 3)}
+)
+check_mdp(grid_4x4)
+terminal_set = set(grid_4x4["terminal_states"])
+print("terminal_set :", terminal_set ) # 0, 15
+nonterminal = [s for s in range(len(grid_4x4["coords"])) if s not in terminal_set]
+print("nonterminal :", nonterminal ) # 1 ... 14
+
+# %%
+# STUDY of prepare_env(env, start_states):
+env = grid_4x4
+start_states=nonterminal
+env["start_states"] = list(start_states)
+is_terminal = [False] * len(env["coords"])
+print("is_terminal init : ", is_terminal)
+for s in env["terminal_states"]:
+        is_terminal[s] = True
+print("is_terminal set up : ", is_terminal)
+
+
+# %%
 grid = build_gridworld(
     shape=(10, 10),
     terminal_coords={(0, 0), (9, 9)}
