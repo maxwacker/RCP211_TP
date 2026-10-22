@@ -393,6 +393,27 @@ print("is_terminal set up : ", is_terminal)
 
 
 # %%
+# STUDY env_reset(env, rng) 
+# env : pour starts(=nonterminal), rng
+# rng : (pseudo) random number generator
+# Studying expression : starts[int(rng.integers(len(starts)))]
+print("starts on grid_4x4 : ", start_states)
+rng42 = np.random.default_rng(42)
+start_states[int(rng42.integers(len(start_states)))] # select randomly (uniform law) an index, then getting value : [index] ?
+
+# How it work : 1) select index randomly, then getting associted value :
+some_sparse_starts = [4, 8, 16, 32]
+ramdom_index = int(rng42.integers(len(some_sparse_starts)))
+some_sparse_starts[ramdom_index]
+
+# %%
+# STUDY sample_index(probs, rng)
+rng42 = np.random.default_rng(42)
+rng42.random()
+
+# %%
+
+# %%
 grid = build_gridworld(
     shape=(10, 10),
     terminal_coords={(0, 0), (9, 9)}
