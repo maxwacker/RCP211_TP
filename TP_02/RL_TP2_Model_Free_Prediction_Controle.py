@@ -465,6 +465,19 @@ freq / N # C'est bien ça.
 # %%
 
 # %%
+# Etude de env_step(env, s, a, rng):
+def env_step_study(env, s, a, rng):
+    # L'environnement exécute l'action a dans l'état s.
+    # Il renvoie (récompense, état suivant, épisode terminé ?).
+    if rng.random() < env["slip"]:
+        a = int(rng.integers(N_ACTIONS))      # l'environnement "glisse"
+    s_next = sample_index(env["P"][s, a], rng)   # seul l'environnement lit P
+    r = float(env["R"][s, a, s_next])            # ... et R
+    done = env["is_terminal"][s_next]
+    return r, s_next, done
+
+
+# %%
 grid = build_gridworld(
     shape=(10, 10),
     terminal_coords={(0, 0), (9, 9)}
