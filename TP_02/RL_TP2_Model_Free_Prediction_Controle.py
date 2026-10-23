@@ -109,7 +109,7 @@ N_ACTIONS = len(ACTION_NAMES)
 #
 # La cellule suivante rassemble, **sans modification**, les outils du TP1 dont nous avons besoin : la construction du GridWorld (`build_gridworld`), les deux fonctions d'affichage (`draw_values`, `draw_policy`), l'évaluation de politique et *Value Iteration*. Nous les utiliserons pour deux choses seulement : construire les environnements et calculer la vérité terrain. Il suffit d'exécuter la cellule ; rien de nouveau n'est à lire ici.
 
-# %%
+# %% jupyter={"source_hidden": true}
 # ---------- Outils du TP1 (inchangés) ---------
 
 def build_gridworld(shape, terminal_coords, walls=None):
@@ -375,21 +375,22 @@ grid_4x4 = build_gridworld(
     terminal_coords={(0, 0), (3, 3)}
 )
 check_mdp(grid_4x4)
-terminal_set = set(grid_4x4["terminal_states"])
-print("terminal_set :", terminal_set ) # 0, 15
-nonterminal = [s for s in range(len(grid_4x4["coords"])) if s not in terminal_set]
-print("nonterminal :", nonterminal ) # 1 ... 14
+terminal_set_4x4 = set(grid_4x4["terminal_states"])
+print("terminal_set_4x4 :", terminal_set_4x4 ) # 0, 15
+nonterminal_4x4 = [s for s in range(len(grid_4x4["coords"])) if s not in terminal_set_4x4]
+print("nonterminal_4x4 :", nonterminal_4x4 ) # 1 ... 14
 
 # %%
 # STUDY of prepare_env(env, start_states):
-env = grid_4x4
-start_states=nonterminal
-env["start_states"] = list(start_states)
-is_terminal = [False] * len(env["coords"])
-print("is_terminal init : ", is_terminal)
+env_4x4 = grid_4x4
+start_states_4x4=nonterminal_4x4
+env["start_states"] = list(start_states_4x4)
+is_terminal_4x4 = [False] * len(env["coords"])
+print("is_terminal_4x4 init : ", is_terminal_4x4)
 for s in env["terminal_states"]:
-        is_terminal[s] = True
-print("is_terminal set up : ", is_terminal)
+        is_terminal_4x4[s] = True
+print("is_terminal_4x4 set up : ", is_terminal_4x4)
+
 
 
 # %%
@@ -397,19 +398,69 @@ print("is_terminal set up : ", is_terminal)
 # env : pour starts(=nonterminal), rng
 # rng : (pseudo) random number generator
 # Studying expression : starts[int(rng.integers(len(starts)))]
-print("starts on grid_4x4 : ", start_states)
+print("starts on grid_4x4 : ", start_states_4x4) #Départs possibles d'un épsode : les non terminaux
 rng42 = np.random.default_rng(42)
-start_states[int(rng42.integers(len(start_states)))] # select randomly (uniform law) an index, then getting value : [index] ?
-
+start_states_4x4[int(rng42.integers(len(start_states_4x4)))] # select randomly (uniform law) an index, then getting value : [index] ?
 # How it work : 1) select index randomly, then getting associted value :
 some_sparse_starts = [4, 8, 16, 32]
 ramdom_index = int(rng42.integers(len(some_sparse_starts)))
 some_sparse_starts[ramdom_index]
 
 # %%
-# STUDY sample_index(probs, rng)
-rng42 = np.random.default_rng(42)
-rng42.random()
+prepare_env(grid_4x4, start_states_4x4)
+env_4x4 = grid_4x4
+env_4x4["slip"]
+
+# %%
+# STUDY sample_index(probs, rng) 
+# Tire un indice i avec la probabilité probs[i].
+# Invoqué depuis env_step, par 
+#s_next = sample_index(env["P"][s, a], rng)
+probs = grid_4x4["P"][1, 2] # Ici : s=1 (2e case), a = 2 (droite) 
+# -> [0, 0, 1, 0, 0, 0, ...] : Politque déterministe 2e case --droite--> 3e case
+print("probs : ",  probs)
+
+# sample_index(probs, rng), sur un exemple plus concis de probs (et non déterministe)
+small_probs = [0.2, 0.0, 0.3, 0.5]
+rng0 = np.random.default_rng(0)
+# Tire un indice i avec la probabilité probs[i].
+def sample_index_study(probs, rng):
+    # Tire un indice i avec la probabilité probs[i].
+    u = rng.random()
+    print("u:", u)
+    total = 0.0
+    last = len(probs) - 1
+    for i in range(last):
+        total += probs[i]
+        print("iter: ", i, "cumulated probs", total)
+        if u < total:
+            print("iter: ", i, "cumulated probs", total)
+            return i
+    return last
+print("small_probs : ",  small_probs)
+sample_index_study(small_probs, rng0)
+
+# %%
+# Vérification de "Tire un indice i avec la probabilité probs[i]."
+# Si fait un grand nombre de tirage on doit trouvé des gréquence qui correspondent au probabilités initiales
+small_probs = [0.2, 0.1, 0.3, 0.4]
+N = 1000
+
+freq = np.zeros(len(small_probs))
+for t in range(N-1):
+    i = sample_index(small_probs, rng0)
+    freq[i]+=1
+freq / N # C'est bien ça. 
+
+# Explication géométrique de l'algo
+# On découpe le segment [0,1] en segments de la taille des proba
+# La probabilité que u tombe dans ce segment est bien la taille de ce segment
+# .2 .1 .3  .4
+#|--|-|---|----|
+#0             1
+# On itère donc sur les bornes des segments pour identifier dans lequel u "est tombé" 
+
+# %%
 
 # %%
 
