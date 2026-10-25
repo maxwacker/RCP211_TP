@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.18.1
+#       jupytext_version: 1.17.3
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -384,10 +384,10 @@ print("nonterminal_4x4 :", nonterminal_4x4 ) # 1 ... 14
 # STUDY of prepare_env(env, start_states):
 env_4x4 = grid_4x4
 start_states_4x4=nonterminal_4x4
-env["start_states"] = list(start_states_4x4)
-is_terminal_4x4 = [False] * len(env["coords"])
+env_4x4["start_states"] = list(start_states_4x4)
+is_terminal_4x4 = [False] * len(env_4x4["coords"])
 print("is_terminal_4x4 init : ", is_terminal_4x4)
-for s in env["terminal_states"]:
+for s in env_4x4["terminal_states"]:
         is_terminal_4x4[s] = True
 print("is_terminal_4x4 set up : ", is_terminal_4x4)
 
@@ -461,11 +461,9 @@ freq / N # C'est bien ça.
 # On itère donc sur les bornes des segments pour identifier dans lequel u "est tombé" 
 
 # %%
-
-# %%
-
-# %%
-# Etude de env_step(env, s, a, rng):
+# Etude de env_step(env, s, a, rng): 
+# Renvoie la récompense, l'état suivant et un booléen `done` qui vaut `True` si l'état suivant est terminal. 
+# C'est **tout** ce que voit l'agent.
 def env_step_study(env, s, a, rng):
     # L'environnement exécute l'action a dans l'état s.
     # Il renvoie (récompense, état suivant, épisode terminé ?).
@@ -476,6 +474,13 @@ def env_step_study(env, s, a, rng):
     done = env["is_terminal"][s_next]
     return r, s_next, done
 
+# Sur ex grid_44
+env_4x4["slip"] # probabilité que l'environnement remplace l'action choisie par une action tirée au hasard (0.0 sauf pour ex falaise)
+# Quand slip = 0, rng.random() n'est jamais vrai. Si slip > 0, on peut parfois changer l'action aléatoirement
+# Donc :
+# - On tire l'état suivant s_next par sample_dev sur P[s,a] (dont le résultat peut être non déterministe)
+# - On obtient la récompense aossicée à cette transition par R[s, a, s_next]
+# - On détermine si on a atteint un état terminal : done True|False
 
 # %%
 grid = build_gridworld(
