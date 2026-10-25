@@ -511,7 +511,18 @@ for t in range(8):
 # ### Questions
 #
 # 1. Après chaque action, qu'**observe** l'agent ? Qu'est-ce qui lui reste **caché** ?
+#
+# <font color='blue'>
+#     L'agent récupère le nouvel état issu de cette action issu de l'action, la récopense et s'il s'agit d'un état terminal.
+#     L'agent ne sait rien d'autre. Ni les autres actions qui aurraient été possibles, ni leurs récompense, leur valeur (Q), ni la valeur du nouvel états (V), 
+# </font>
+#
 # 2. Si l'on relance la cellule précédente, obtient-on la même trajectoire ? Que faudrait-il changer pour en obtenir une autre ?
+#
+# <font color='blue'>
+#     Le random number generator (rng) est en fait pseudo random : Il génrère la même série de nombre pour un sel (salt) donné.
+#     Pour obtenir une autre série de nombre, il faut changer de salt à l'initialisation du rng
+# </font>
 #
 # ### À retenir
 #
