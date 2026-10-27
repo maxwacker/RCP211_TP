@@ -707,7 +707,9 @@ def mc_prediction(env, policy, gamma, alpha, n_episodes, rng,
             if s not in seen:                        # première visite de s
                 seen.add(s)
                 V[s] += alpha * (returns[t] - V[s]) ## On 'corrige' l'estimation précédante  SUR CHAQUE ETAT VISITE, MAIS 1 seul fois
-
+                ## ATTENTION : On affine l'estimation de V SUR TOUS LES EPISODES (on reutilise le même V)
+                ## le 'seen set' est reset à CHAQUE PARCOURS. Donc le même V[s] est mis à jour une seule fois
+                ## par épisode (mais plusieurs fois au cours de la mc_prediction
         errors.append(rms_error(V, V_ref, nonterminal))
 
     return V, np.array(errors)
@@ -717,6 +719,20 @@ def mc_prediction(env, policy, gamma, alpha, n_episodes, rng,
 # ### Question
 #
 # Dans `mc_prediction`, pourquoi faut-il attendre la **fin de l'épisode** avant de mettre `V` à jour ? Que se passerait-il sur une tâche continue, sans état terminal ? (Notes §2.1.5.)
+#
+# <font color='blue'>
+# La mise à jour de V dépend des récompenses collectées sur le chemin de l'épisode consédéré. Il faut donc un épisode entier, jusqu'à la fin, pour établir la nouvelle estimation "fialble".
+#
+# Sur une tâche sans état terminal cette terminaison d'épisode ne peut être établie. Donc l'estimation des retours est donc plus approximative.
+# </font>
+#
+# <font color='green'>
+# La "cible de Monte Carlo" est G_t (returns). Elle ne peut être estimée qu'à la fin de l'épisode.
+# </font>
+#
+# <font color='blue'>
+# Sur une tâche sans terminaison, on travaille donc sur épisodes tronqués. 
+# </font>
 #
 # ## 2.3 TD(0)
 #
