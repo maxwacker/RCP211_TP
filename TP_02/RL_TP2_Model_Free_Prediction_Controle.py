@@ -479,7 +479,7 @@ env_4x4["slip"] # probabilité que l'environnement remplace l'action choisie par
 # Quand slip = 0, rng.random() n'est jamais vrai. Si slip > 0, on peut parfois changer l'action aléatoirement
 # Donc :
 # - On tire l'état suivant s_next par sample_dev sur P[s,a] (dont le résultat peut être non déterministe)
-# - On obtient la récompense aossicée à cette transition par R[s, a, s_next]
+# - On obtient la récompense associée à cette transition par R[s, a, s_next]
 # - On détermine si on a atteint un état terminal : done True|False
 
 # %%
@@ -604,8 +604,8 @@ def generate_episode(env, policy, rng, max_steps=10_000):
             terminated = True
             break
 
-    return states, actions, rewards, terminated
-
+    return states, actions, rewards, terminated 
+# On a la liste des états, des actions des transitions et leurs récompenses
 
 def compute_returns(rewards, gamma):
     # G_t = R_{t+1} + gamma * G_{t+1}, calculé de la fin vers le début.
@@ -620,10 +620,10 @@ def compute_returns(rewards, gamma):
 # %%
 rng = np.random.default_rng(1)
 states, actions, rewards, terminated = generate_episode(grid, uniform_policy, rng)
-returns = compute_returns(rewards, gamma)
+returns = compute_returns(rewards, gamma) # Somme fin->début
 
 T = len(rewards)
-G0_direct = sum(gamma**k * rewards[k] for k in range(T))
+G0_direct = sum(gamma**k * rewards[k] for k in range(T)) # G_0 : Somme de récompenses avec "amenuissement" gamma sur les rewards
 
 print("Longueur de l'épisode T :", T, "| terminé dans un état terminal :", terminated)
 print("Premier état :", grid["coords"][states[0]])
@@ -639,7 +639,20 @@ print("Longueur moyenne sur 200 épisodes :", np.mean(lengths))
 # ### Questions
 #
 # 1. Pourquoi calcule-t-on les retours de la **fin vers le début** ? Combien d'opérations cela coûte-t-il, comparé au calcul séparé de chaque $G_t$ par la somme directe ?
+#
+# <font color='blue'>
+# On calcule le retour de la fin vers le début pour profiter de la récurence dans le calcul G_t = R_t+1 + gamma * G_t+1. Cela nécessite un seul parcours des rewards : O(T)
+#
+# La somme directe est une somme sur les T rewards, dont chaque terme est un 'sous-parcours' des rewards de de taille (T-1),(T-2), ... , 0 : Soit O(T**2).
+#     
+# </font>
+#
+#
 # 2. La longueur moyenne d'un épisode est de l'ordre de deux cents pas. Qu'est-ce que cela annonce pour les retours Monte Carlo ? (Pensez à la variance, notes §2.1.5.)
+#
+# <font color='blue'>
+# Variance / Monte Carlo : chaque étape d'un épisode est issu d'un tirage aléaoite. Les épisodes sur un même point de départ peuvent donc suivrent des chemins différents et les résulats obtenu d'estimation de V peuvent donc montrer une forte variance, d'autant plus grande que le chemin est long. La variance des résults augmente donc selon la taille des chemins. Il faut donc une grand quantité d'épisodes pour obtenir une estimation correcte
+# </font>
 
 # %% [markdown]
 # ## 2.2 Monte Carlo *first-visit*
@@ -682,16 +695,18 @@ def mc_prediction(env, policy, gamma, alpha, n_episodes, rng,
     errors = []
 
     for k in range(n_episodes):
+        ## On gérère un épisode : En collectant la séquences des états visités 
+        ## les actions et récompenses des transitions, et l'info de terminal atteint
         states, actions, rewards, terminated = generate_episode(env, policy, rng, max_steps)
         # Si l'épisode a été coupé, le retour s'arrête à la coupure (comme si G_T = 0).
-        returns = compute_returns(rewards, gamma)
+        returns = compute_returns(rewards, gamma) ## Gt cummulés sur chaque transition
 
         seen = set()
         for t in range(len(states)):
             s = states[t]
             if s not in seen:                        # première visite de s
                 seen.add(s)
-                V[s] += alpha * (returns[t] - V[s])
+                V[s] += alpha * (returns[t] - V[s]) ## On 'corrige' l'estimation précédante  SUR CHAQUE ETAT VISITE, MAIS 1 seul fois
 
         errors.append(rms_error(V, V_ref, nonterminal))
 
