@@ -71,6 +71,18 @@ plt.scatter(X[:,0], X[:,1], s=10)
 plt.title
 plt.show()
 
+# %%
+# Previous Cell Study
+n_samples = 5
+x1 = np.array([1.0, 2.0, 3.0, 4.0, 5.0]) #10 * np.random.rand(n_samples)
+x2 = 10 * x1  #np.sin(x1) + 0.1*np.random.randn(n_samples)
+print("x1 :",x1)
+print("x2 :",x2)
+X = np.vstack((x1, x2))
+print("X :",X)
+X = np.transpose(X, (1, 0))
+print("np.transpose(X, (1, 0)) :\n",X)
+
 # %% [markdown]
 # ## Question
 #
