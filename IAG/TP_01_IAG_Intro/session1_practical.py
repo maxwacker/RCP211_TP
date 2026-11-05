@@ -73,19 +73,41 @@ plt.show()
 
 # %%
 # Previous Cell Study
-x1 = np.array([1.0, 2.0, 3.0, 4.0, 5.0]) #10 * np.random.rand(n_samples)
-x2 = 10 * x1  #np.sin(x1) + 0.1*np.random.randn(n_samples)
-print("x1 :\n",x1)
-print("x2 :\n",x2)
-X = np.vstack((x1, x2))
-print("X :\n",X)
-X = np.transpose(X, (1, 0))
-print("np.transpose(X, (1, 0)) :\n",X)
+sx1 = np.array([1.0, 2.0, 3.0, 4.0, 5.0]) #10 * np.random.rand(n_samples)
+sx2 = sx1 * 10 
+print("sx1 :\n",sx1)
+print("sx2 :\n",sx2)
+sX = np.vstack((sx1, sx2))
+print("sX :\n",sX)
+sX = np.transpose(sX, (1, 0))
+print("np.transpose(sX, (1, 0)) :\n",sX)
 
 # %% [markdown]
 # ## Question
 #
 # Appliquer un [modèle de mélange gaussien](https://scikit-learn.org/stable/modules/generated/sklearn.mixture.GaussianMixture.html) à la matrice d’observations $ X $. On choisira de façon empirique un nombre de composantes qui semble adapté au nuage de points.
+
+# %%
+#Compute bounds of datas for density plot range
+
+# min & max values for x & y 
+min_x = np.min(X[:,0])
+max_x = np.max(X[:,0])
+min_y = np.min(X[:,1])
+max_y = np.max(X[:,1])
+#Ranges for x & y
+rx = max_x - min_x
+ry = max_y - min_y
+
+# Add some margins
+margin = 0.1
+mmin_x = min_x - margin
+mmax_x = max_x + margin
+mmin_y = min_y - margin
+mmax_y = max_y + margin
+
+mrx = mmax_x - mmin_x
+mry = mmax_y - mmin_y
 
 # %%
 # Réponse:
@@ -96,8 +118,12 @@ from sklearn.mixture import GaussianMixture
 
 # préparer les données où on calculera la densité
 grid_size = 100 # n_samples =300 
-Gx = np.arange(-1.0, 11.0, 10 / grid_size)
-Gy = np.arange(-1.5, 1.5, 10 / grid_size)
+#Gx = np.arange(-1.0, 11.0, 10 / grid_size)
+#Gy = np.arange(-1.5, 1.5, 10 / grid_size)
+
+Gx = np.arange(mmin_x, mmax_x, mrx/grid_size) 
+Gy = np.arange(mmin_y, mmax_y, mry/grid_size)
+
 Gx, Gy = np.meshgrid(Gx, Gy)
 
 # estimation par mélange gaussien
@@ -112,28 +138,15 @@ density = np.exp(gmm.score_samples(np.hstack(
 )))
 
 # affichage : données et estimation
+# %matplotlib widget
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 ax.plot_surface(Gx, Gy, density.reshape(grid_size,grid_size), rstride=1,
                     cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=True)
-ax.scatter(md[:,0], md[:,1], -0.025)
+ax.scatter(X[:,0], X[:,1], -0.025)
 plt.show()
-
-# %%
-
-# %%
-n_samples # 300
-grid_size = 100 # n_samples =300 
-Gx = np.arange(-1.0, 11.0, 10 / grid_size)
-Gy = np.arange(-1.5, 1.5, 10 / grid_size)
-print("Gx arrange shape : ", Gx.shape) 
-print("Gy arrange shape : ", Gx.shape) 
-Gx, Gy = np.meshgrid(Gx, Gy)
-print("Gx meshgrid shape : ", Gx.shape) 
-print("Gy meshgrid shape : ", Gx.shape) 
-
 
 # %% [markdown]
 # ## Correction
@@ -165,8 +178,6 @@ def make_ellipses(gmm, ax):
         angle = np.arctan2(u[1], u[0])
         angle = 180 * angle / np.pi  # convert to degrees
         v = 2. * np.sqrt(2.) * np.sqrt(v)
-        ell = mpl.patches.Ellipse(gmm.means_[n, :2], v[0], v[1],
-                                  180 + angle, color=color)
         ell.set_clip_box(ax.bbox)
         ell.set_alpha(0.5)
         ax.add_artist(ell)

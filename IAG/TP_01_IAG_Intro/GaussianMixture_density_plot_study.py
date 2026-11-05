@@ -86,9 +86,36 @@ small_md = np.array([
     [0.5, 0.5],
     [0.5, 1.2]
 ])
+
+
+
+# %%
+#Compute bounds of datas for density plot range
+
+# min & max values for x & y 
+min_x = np.min(small_md[:,0])
+max_x = np.max(small_md[:,0])
+min_y = np.min(small_md[:,1])
+max_y = np.max(small_md[:,1])
+#Ranges for x & y
+rx = max_x - min_x
+ry = max_y - min_y
+
+# Add some margins
+margin = 0.1
+mmin_x = min_x - margin
+mmax_x = max_x + margin
+mmin_y = min_y - margin
+mmax_y = max_y + margin
+
+mrx = mmax_x - mmin_x
+mry = mmax_y - mmin_y
+
+# %%
+
+# %%
 # estimation par mélange gaussien
 gmm = GaussianMixture(n_components=1,n_init=3).fit(small_md)
-
 
 # %%
 # %matplotlib widget
@@ -98,8 +125,12 @@ gmm = GaussianMixture(n_components=1,n_init=3).fit(small_md)
 grid_size = 100
 
 ## Here we have to match the x&y range of value
-Gx = np.arange(-1.5, 1.5, 3/grid_size) # 3/grid_size
-Gy = np.arange(-1.5, 1.5, 3/grid_size)
+#Gx = np.arange(-1.5, 1.5, 3/grid_size) # Ici 3 semble être la taille de l'étendue des valeurs max(x) - min(x)
+#Gy = np.arange(-1.5, 1.5, 3/grid_size)
+
+Gx = np.arange(mmin_x, mmax_x, mrx/grid_size) 
+Gy = np.arange(mmin_y, mmax_y, mry/grid_size)
+
 Gx, Gy = np.meshgrid(Gx, Gy)
 
 
