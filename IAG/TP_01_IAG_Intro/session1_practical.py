@@ -76,10 +76,10 @@ plt.show()
 n_samples = 5
 x1 = np.array([1.0, 2.0, 3.0, 4.0, 5.0]) #10 * np.random.rand(n_samples)
 x2 = 10 * x1  #np.sin(x1) + 0.1*np.random.randn(n_samples)
-print("x1 :",x1)
-print("x2 :",x2)
+print("x1 :\n",x1)
+print("x2 :\n",x2)
 X = np.vstack((x1, x2))
-print("X :",X)
+print("X :\n",X)
 X = np.transpose(X, (1, 0))
 print("np.transpose(X, (1, 0)) :\n",X)
 
@@ -87,6 +87,12 @@ print("np.transpose(X, (1, 0)) :\n",X)
 # ## Question
 #
 # Appliquer un [modèle de mélange gaussien](https://scikit-learn.org/stable/modules/generated/sklearn.mixture.GaussianMixture.html) à la matrice d’observations $ X $. On choisira de façon empirique un nombre de composantes qui semble adapté au nuage de points.
+
+# %%
+# Réponse:
+# On cherche à générer des élément de(s) classe(s) portée par le dataset X (sans label de  supervision, sans connaissance du nombre de classe)
+# Hypothèse : 1 seule classe = Les points x,y qui sont dans le nuage Oui ou Non
+
 
 # %% [markdown]
 # ## Correction
