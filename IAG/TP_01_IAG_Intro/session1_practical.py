@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.17.3
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -73,7 +73,6 @@ plt.show()
 
 # %%
 # Previous Cell Study
-n_samples = 5
 x1 = np.array([1.0, 2.0, 3.0, 4.0, 5.0]) #10 * np.random.rand(n_samples)
 x2 = 10 * x1  #np.sin(x1) + 0.1*np.random.randn(n_samples)
 print("x1 :\n",x1)
@@ -92,6 +91,48 @@ print("np.transpose(X, (1, 0)) :\n",X)
 # Réponse:
 # On cherche à générer des élément de(s) classe(s) portée par le dataset X (sans label de  supervision, sans connaissance du nombre de classe)
 # Hypothèse : 1 seule classe = Les points x,y qui sont dans le nuage Oui ou Non
+from scipy.stats import norm
+from sklearn.mixture import GaussianMixture
+
+# préparer les données où on calculera la densité
+grid_size = 100 # n_samples =300 
+Gx = np.arange(-1.0, 11.0, 10 / grid_size)
+Gy = np.arange(-1.5, 1.5, 10 / grid_size)
+Gx, Gy = np.meshgrid(Gx, Gy)
+
+# estimation par mélange gaussien
+gmm = GaussianMixture(n_components=3,n_init=3).fit(X)
+
+# calcul de la densité pour les données de la grille
+density = np.exp(gmm.score_samples(np.hstack(
+    (
+        (Gx.reshape(grid_size*grid_size))[:,np.newaxis],
+        (Gy.reshape(grid_size*grid_size)[:,np.newaxis])
+    )
+)))
+
+# affichage : données et estimation
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+
+fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+ax.plot_surface(Gx, Gy, density.reshape(grid_size,grid_size), rstride=1,
+                    cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=True)
+ax.scatter(md[:,0], md[:,1], -0.025)
+plt.show()
+
+# %%
+
+# %%
+n_samples # 300
+grid_size = 100 # n_samples =300 
+Gx = np.arange(-1.0, 11.0, 10 / grid_size)
+Gy = np.arange(-1.5, 1.5, 10 / grid_size)
+print("Gx arrange shape : ", Gx.shape) 
+print("Gy arrange shape : ", Gx.shape) 
+Gx, Gy = np.meshgrid(Gx, Gy)
+print("Gx meshgrid shape : ", Gx.shape) 
+print("Gy meshgrid shape : ", Gx.shape) 
 
 
 # %% [markdown]
