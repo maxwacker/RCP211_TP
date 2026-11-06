@@ -232,6 +232,13 @@ plt.scatter(X_samples[:, 0], X_samples[:, 1], marker='x', s=20)
 #
 # **Indice**: la moyenne et la matrice de variance-covariance de la composante numéro $ i $ du mélange sont stockées respectivement dans `gmm.means_[i]` et `gmm.covariances_[i]`. La fonction `multivariate_normal` de [NumPy](https://numpy.org/doc/stable/reference/random/generated/numpy.random.multivariate_normal.html) peut être utile.
 
+# %%
+mean_c0 = gmm.means_[0]
+cov_c0 = gmm.covariances_[0]
+c0_sample_x, c0_sample_y = np.random.multivariate_normal(mean_c0, cov_c0, 100).T
+plt.scatter(c0_sample_x, c0_sample_y, marker='x', s=20, color="red")
+
+
 # %% [markdown]
 # ## Correction
 #
