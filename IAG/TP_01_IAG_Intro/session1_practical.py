@@ -178,6 +178,12 @@ def make_ellipses(gmm, ax):
         angle = np.arctan2(u[1], u[0])
         angle = 180 * angle / np.pi  # convert to degrees
         v = 2. * np.sqrt(2.) * np.sqrt(v)
+        ell = mpl.patches.Ellipse(
+            tuple(gmm.means_[n, :2]), 
+            v[0], 
+            v[1],
+            angle=180 + angle, # Fix from original
+            color=color)
         ell.set_clip_box(ax.bbox)
         ell.set_alpha(0.5)
         ax.add_artist(ell)
